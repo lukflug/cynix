@@ -13,6 +13,7 @@
 #include <sys/gdt.k.h>
 #include <sys/idt.k.h>
 #include <sys/isr.k.h>
+#include <sys/lapic.k.h>
 #include <sys/mp.k.h>
 #include <acpi/acpi.k.h>
 #include <proc/sched.k.h>
@@ -48,6 +49,7 @@ void kmain(void) {
     x2apic_mode = limine_mp_request.response->flags & LIMINE_MP_X2APIC;
 
     acpi_init();
+    lapic_init();
     mp_init();
 
     sched_init();
