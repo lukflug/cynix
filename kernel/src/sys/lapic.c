@@ -4,14 +4,12 @@
 #include <sys/cpu.k.h>
 #include <sys/pit.k.h>
 #include <mm/generic.k.h>
+#include <mm/vmm.k.h>
 #include <lib/printf.k.h>
 
 static volatile uint32_t *lapic_base = NULL;
 
 static uint32_t xapic_read(uint32_t reg) {
-    if (lapic_base == NULL) {
-        lapic_base = (volatile uint32_t *)((rdmsr(0x1b) & 0xfffff000) + hhdm);
-    }
     return lapic_base[reg / 4];
 }
 
@@ -20,9 +18,6 @@ static uint64_t x2apic_read(uint32_t reg) {
 }
 
 static void xapic_write(uint32_t reg, uint32_t val) {
-    if (lapic_base == NULL) {
-        lapic_base = (volatile uint32_t *)((rdmsr(0x1b) & 0xfffff000) + hhdm);
-    }
     lapic_base[reg / 4] = val;
 }
 
@@ -118,5 +113,14 @@ void lapic_send_ipi(uint32_t lapic_id, uint8_t vec) {
     } else {
         xapic_write(LAPIC_REG_ICR1, lapic_id << 24);
         xapic_write(LAPIC_REG_ICR0, vec);
+    }
+}
+
+void lapic_init(void) {
+    if (!x2apic_mode) {
+        uint32_t lapic_base_phys = rdmsr(0x1b) & 0xfffff000;
+        vmm_map_page(&kernel_pagemap, (void *)lapic_base_phys + hhdm, lapic_base_phys,
+             VMM_PTE_PRESENT | VMM_PTE_NOEXEC | VMM_PTE_WRITABLE);
+        lapic_base = (volatile uint32_t *)(lapic_base_phys + hhdm);
     }
 }

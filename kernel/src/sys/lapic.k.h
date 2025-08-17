@@ -13,6 +13,7 @@
 #define LAPIC_REG_TIMER_CURCNT 0x390
 #define LAPIC_REG_TIMER_DIV 0x3e0
 
+void lapic_init(void);
 void lapic_enable(uint8_t spurious_vec);
 void lapic_eoi(void);
 void lapic_send_ipi(uint32_t lapic_id, uint8_t vec);
