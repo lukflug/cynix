@@ -1,0 +1,35 @@
+#! /bin/sh
+
+name=glib2
+repology_id=glib
+version=2.84.3
+revision=1
+git_url="https://gitlab.gnome.org/GNOME/glib.git"
+commit=78cd78d2988616d9af0e8f43e703717d092cd3ff
+imagedeps="python3-docutils"
+hostdeps="gcc pkg-config"
+deps="core-libs pcre2 libffi zlib"
+source_allow_network=yes
+
+prepare() {
+    git submodule update --init --recursive
+}
+
+configure() {
+    meson_configure \
+        -Dglib_debug=disabled \
+        -Dman-pages=enabled \
+        -Dsysprof=disabled \
+        -Dintrospection=disabled \
+        -Dxattr=false
+}
+
+build() {
+    meson compile -j${parallelism}
+}
+
+package() {
+    DESTDIR="${dest_dir}" meson install --no-rebuild
+
+    post_package_strip
+}

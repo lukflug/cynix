@@ -1,8 +1,7 @@
-diff --git xf86-input-mouse-clean/configure.ac xf86-input-mouse-workdir/configure.ac
-index 1d871b2..d196694 100644
---- xf86-input-mouse-clean/configure.ac
-+++ xf86-input-mouse-workdir/configure.ac
-@@ -62,7 +62,7 @@ AC_SUBST(inputdir)
+diff -urN --no-dereference xf86-input-mouse-clean/configure xf86-input-mouse-workdir/configure
+--- xf86-input-mouse-clean/configure
++++ xf86-input-mouse-workdir/configure
+@@ -19591,7 +19591,7 @@
  
  # X Server SDK location is required to install xf86-mouse-properties.h
  # This location is also relayed in the xorg-mouse.pc file
@@ -11,7 +10,7 @@ index 1d871b2..d196694 100644
  
  # Workaround overriding sdkdir to be able to create a tarball when user has no
  # write permission in sdkdir. See DISTCHECK_CONFIGURE_FLAGS in Makefile.am
-@@ -84,6 +84,9 @@ case $host_os in
+@@ -19619,6 +19619,9 @@
    gnu*)
      OS_MOUSE_NAME=hurd
      ;;
@@ -19,14 +18,12 @@ index 1d871b2..d196694 100644
 +    OS_MOUSE_NAME=cynix
 +    ;;
  esac
- AC_SUBST([OS_MOUSE_NAME])
  
-diff --git xf86-input-mouse-workdir/src/cynix_mouse.c xf86-input-mouse-workdir/src/cynix_mouse.c
-new file mode 100644
-index 0000000..b664773
---- /dev/null
+ 
+diff -urN --no-dereference xf86-input-mouse-clean/src/cynix_mouse.c xf86-input-mouse-workdir/src/cynix_mouse.c
+--- xf86-input-mouse-clean/src/cynix_mouse.c	1970-01-01 01:00:00.000000000 +0100
 +++ xf86-input-mouse-workdir/src/cynix_mouse.c
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,115 @@
 +#ifdef HAVE_XORG_CONFIG_H
 +#include <xorg-config.h>
 +#endif
@@ -51,29 +48,31 @@ index 0000000..b664773
 +
 +#include <sys/stat.h>
 +
-+#define MOUSE_FLAG_LB (1 << 0)
-+#define MOUSE_FLAG_RB (1 << 1)
-+#define MOUSE_FLAG_MB (1 << 2)
-+
-+struct mouse_packet {
-+    uint8_t flags;
-+    int32_t x_mov;
-+    int32_t y_mov;
++struct cynix_mouse_data {
++   int  x_variation;
++   int  y_variation;
++   int  z_variation;
++   bool is_left;
++   bool is_right;
++   bool is_middle;
++   bool is_4th;
++   bool is_5th;
 +};
 +
 +static void cynixReadInput(InputInfoPtr pInfo) {
 +    MouseDevPtr mouse = pInfo->private;
-+    struct mouse_packet packet;
++    struct cynix_mouse_data packet;
 +
-+    if (read(pInfo->fd, &packet, sizeof(struct mouse_packet)) == sizeof(struct mouse_packet)) {
++    if (read(pInfo->fd, &packet, sizeof(struct cynix_mouse_data))) {
 +        int b = mouse->lastButtons;
 +        b &= ~0x7;
 +
-+        b |= (packet.flags & MOUSE_FLAG_RB) ? 1 : 0;
-+        b |= (packet.flags & MOUSE_FLAG_MB) ? 2 : 0;
-+        b |= (packet.flags & MOUSE_FLAG_LB) ? 4 : 0;
-+
-+        mouse->PostEvent(pInfo, b, packet.x_mov, -packet.y_mov, 0, 0);
++        b |= packet.is_right  ? 0b00001 : 0;
++        b |= packet.is_middle ? 0b00010 : 0;
++        b |= packet.is_left   ? 0b00100 : 0;
++        b |= packet.is_4th    ? 0b01000 : 0;
++        b |= packet.is_5th    ? 0b10000 : 0;
++        mouse->PostEvent(pInfo, b, packet.x_variation, packet.y_variation, packet.z_variation, 0);
 +    }
 +}
 +
@@ -97,16 +96,10 @@ index 0000000..b664773
 +    return true;
 +}
 +
-+#define DEVPATH "/dev/mouse"
++#define DEVPATH "/dev/ps2mouse"
 +
 +static const char *getdevice(InputInfoPtr pInfo, const char *proto, int flag){
-+    struct stat st;
-+
-+    if (stat(DEVPATH, &st) == -1)
-+        return NULL;
-+
 +    pInfo->options = xf86AddNewOption(pInfo->options, "Device", DEVPATH);
-+
 +    return DEVPATH;
 +}
 +

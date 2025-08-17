@@ -1,29 +1,29 @@
 #! /bin/sh
 
 name=bash
-version=5.2.26
+_minor_version=5.3
+_patch=003
+version=${_minor_version}.${_patch}
 revision=1
-tarball_url="https://ftp.gnu.org/gnu/bash/bash-5.2.21.tar.gz"
-tarball_blake2b="6789c9a0d9eb1ad167d4199bf1438d77934a7bbeae9f9fdd7167cae006b17b3894852440248db1bb6e9cf6d930e8a18b6448a3bb4db8831b2e6d1445b56a2065"
+_base_patch=001
+if [ "${_base_patch}" = 001 ]; then
+    tarball_url="https://ftpmirror.gnu.org/gnu/bash/bash-${_minor_version}.tar.gz"
+else
+    tarball_url="https://ftpmirror.gnu.org/gnu/bash/bash-${_minor_version}.${_base_patch}.tar.gz"
+fi
+tarball_blake2b="82d1b54322bbd1e8c2a93380f1b2888a42a1d7186e504f41cee705a0fdd41463d8f20baa1755051e1396192f8ebd089524767d933a9e0b5fb76f2588601539bb"
 source_allow_network=yes
-source_imagedeps="curl"
-source_hostdeps="autoconf automake libtool pkg-config"
 imagedeps="build-essential"
-hostdeps="gcc autoconf automake libtool pkg-config"
+hostdeps="gcc pkg-config"
 deps="core-libs ncurses readline"
 
 prepare() {
-    curl -Lo bash52-022 https://ftp.gnu.org/gnu/bash/bash-5.2-patches/bash52-022
-    curl -Lo bash52-023 https://ftp.gnu.org/gnu/bash/bash-5.2-patches/bash52-023
-    curl -Lo bash52-024 https://ftp.gnu.org/gnu/bash/bash-5.2-patches/bash52-024
-    curl -Lo bash52-025 https://ftp.gnu.org/gnu/bash/bash-5.2-patches/bash52-025
-    curl -Lo bash52-026 https://ftp.gnu.org/gnu/bash/bash-5.2-patches/bash52-026
+    if ! [ "${_patch}" = 0 ]; then
+        for p in $(seq -w ${_base_patch} ${_patch}); do
+            curl -L https://ftpmirror.gnu.org/gnu/bash/bash-${_minor_version}-patches/bash$(echo "${_minor_version}" | sed 's/\.//g')-$p | patch -p0
+        done
+    fi
 
-    for f in bash52-02*; do
-        patch -p0 < $f
-    done
-
-        AUTOHEADER=true \
     autotools_recursive_regen
 }
 
@@ -39,7 +39,7 @@ configure() {
         --with-curses \
         --enable-readline \
         --without-bash-malloc \
-        --with-installed-readline="${sysroot}/usr/lib"
+        --with-installed-readline="${sysroot}${prefix}/lib"
 }
 
 build() {

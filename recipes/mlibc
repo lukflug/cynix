@@ -1,11 +1,11 @@
 #! /bin/sh
 
 name=mlibc
-version=c906cb5ade774bb43135054ba75530c15ddc94d8
-revision=1
-tarball_url="https://github.com/managarm/mlibc/archive/${version}.tar.gz"
-tarball_blake2b="a749e59c4ff8dff530987791da3f07c7cade98caaddc0369039da63eb5924ac1c7c6e99d22cd03732b57e4c5d08edf9808e9aa8e6c317e1b87601d0cd4d698c5"
-imagedeps="meson ninja-build"
+skip_pkg_check=yes
+version=0.0git
+revision=19
+git_url="https://github.com/managarm/mlibc.git"
+commit=5be40073b9679457677d933cbc20709645f127c7
 hostdeps="gcc pkg-config libgcc-binaries"
 builddeps="freestnd-c-hdrs freestnd-cxx-hdrs frigg"
 deps="mlibc-headers"
@@ -13,9 +13,9 @@ deps="mlibc-headers"
 configure() {
         CFLAGS="$TARGET_CFLAGS" \
         CXXFLAGS="$TARGET_CXXFLAGS" \
-        LDFLAGS="$TARGET_LDFLAGS -Wl,/usr/local/libgcc-binaries/libgcc-$ARCHITECTURE.a" \
+        LDFLAGS="$TARGET_LDFLAGS -Wl,/usr/local/libgcc-binaries/libgcc-${JINX_ARCH}.a" \
     meson_configure_noflags \
-        --buildtype=debugoptimized \
+        --buildtype=release \
         -Dno_headers=true \
         -Ddefault_library=both \
         -Dlibgcc_dependency=false \
@@ -23,9 +23,9 @@ configure() {
 }
 
 build() {
-    ninja -j${parallelism}
+    meson compile -j${parallelism}
 }
 
 package() {
-    DESTDIR="${dest_dir}" ninja install
+    DESTDIR="${dest_dir}" meson install --no-rebuild
 }

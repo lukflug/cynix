@@ -1,31 +1,19 @@
 #! /bin/sh
 
 name=gettext
-version=0.22.5
+repology_srcname=gettext
+version=0.26
 revision=1
-tarball_url="https://ftp.gnu.org/gnu/gettext/gettext-${version}.tar.xz"
-tarball_blake2b="18c383518f5a78b5c04cf76de976524da2a87a892a30d6386778bb4c7dd526ffc3f14f484906c5d3a513b7caf76ea560e53962b325e552182d6940055d798f24"
-source_hostdeps="automake autoconf libtool pkg-config"
-hostdeps="gcc autoconf automake libtool pkg-config"
+tarball_url="https://ftpmirror.gnu.org/gnu/gettext/gettext-${version}.tar.xz"
+tarball_blake2b="b182e5fdb9fc46868dc39b512ef300c54c8e77a766f2d2de69289f84966d4205f494b3ecedfb30c6df581947172411ae7eb4ccc0bb1f180b67dd8a83803832a8"
+hostdeps="gcc pkg-config"
 deps="core-libs"
 
 prepare() {
-    ( cd gettext-runtime/libasprintf && autoreconf -fvi )
-    ( cd gettext-runtime/intl && autoreconf -fvi )
-    ( cd gettext-runtime && autoreconf -fvi )
-    ( cd gettext-tools && autoreconf -fvi )
-    ( cd libtextstyle && autoreconf -fvi )
-    autoreconf -fvi
+    autotools_recursive_regen
 }
 
 configure() {
-    cp -rp ${source_dir}/. ./
-
-        ACLOCAL=true \
-        AUTOCONF=true \
-        AUTOMAKE=true \
-        AUTOHEADER=true \
-        configure_script_path=./configure \
     autotools_configure
 }
 

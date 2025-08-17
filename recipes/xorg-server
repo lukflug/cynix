@@ -1,13 +1,11 @@
 #! /bin/sh
 
 name=xorg-server
-version=21.1.14
+version=21.1.18
 revision=1
 tarball_url="https://www.x.org/releases/individual/xserver/xorg-server-${version}.tar.xz"
-tarball_blake2b="b64ff9bbcd1d1c632b588800acb1531d6295a52347294d323d684a7149a4f803fb38357a102d715525511c8bb8554daf2e71c28149ccb650b1c7c1990351f53e"
-source_hostdeps="automake autoconf libtool pkg-config"
-source_deps="xtrans xorg-font-util xorg-util-macros"
-hostdeps="gcc autoconf automake libtool pkg-config"
+tarball_blake2b="48c7b745c07a31d11d3a95f8eba056ff46bf69f2c70d499f677cbd706347e0c3c28a8197be5c0d65670c5b2f87f559ea10e7c21ee88bdc767c6a921d5fa8d3b2"
+hostdeps="gcc pkg-config"
 deps="core-libs xorg-util-macros xorg-proto xcb-proto xtrans libxinerama libxcvt libxshmfence libx11 libxaw libxxf86vm libxkbfile libxmu libxfont2 libepoxy libxi libxv libxdamage libxrender libxrandr libxcb libxfixes libxext nettle xorg-xkbcomp xkeyboard-config pixman"
 
 prepare() {

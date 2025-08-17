@@ -1,20 +1,14 @@
 #! /bin/sh
 
 name=harfbuzz
-version=8.5.0
+version=11.3.2
 revision=1
-tarball_url="https://github.com/harfbuzz/harfbuzz/releases/download/${version}/harfbuzz-${version}.tar.xz"
-tarball_blake2b="f598d7de953834499d1ab36c0fc9d95099fd7e99b87f630e1527aaa39deb2d339b9f3caaea3643238c6c1b321557f794f273929950b54fe9de2faa430d77855a"
-imagedeps="meson ninja-build"
+git_url="https://github.com/harfbuzz/harfbuzz.git"
+commit=4e3df1c1383481ed5717603d5dd3453a04fb16ba
 hostdeps="gcc pkg-config"
-deps="core-libs graphite2 glib zlib freetype2 cairo icu"
+deps="core-libs graphite2 glib2 zlib freetype2 cairo icu"
 
 configure() {
-    cp -rp "${source_dir}"/. ./
-
-    mkdir build && cd build
-
-        meson_source_dir=.. \
     meson_configure \
         -Dcpp_std=c++17 \
         -Dgraphite2=enabled \
@@ -25,16 +19,14 @@ configure() {
         -Dcairo=enabled \
         -Dintrospection=disabled \
         -Dtests=disabled
-
-    cd ..
 }
 
 build() {
-    ( cd build && ninja -j${parallelism} )
+    meson compile -j${parallelism}
 }
 
 package() {
-    ( cd build && DESTDIR="${dest_dir}" ninja install )
+    DESTDIR="${dest_dir}" meson install --no-rebuild
 
     post_package_strip
 }

@@ -1,33 +1,64 @@
-diff --git mlibc-clean/.github/workflows/ci.yml mlibc-workdir/.github/workflows/ci.yml
-index 7c630ff..ea4ab11 100644
---- mlibc-clean/.github/workflows/ci.yml
-+++ mlibc-workdir/.github/workflows/ci.yml
-@@ -60,7 +60,7 @@ jobs:
-     compile-sysdeps:
-         strategy:
-             matrix:
--                sysdeps: [dripos, lemon, aero, ironclad, lyre, keyronex, managarm, vinix, astral]
-+                sysdeps: [dripos, lemon, aero, ironclad, lyre, keyronex, managarm, vinix, astral, cynix]
-         name: Compile sysdeps
-         runs-on: ubuntu-22.04
-         container:
+diff --git mlibc-workdir/abis/cynix/reboot.h mlibc-workdir/abis/cynix/reboot.h
+new file mode 100644
+index 0000000..01bccec
+--- /dev/null
++++ mlibc-workdir/abis/cynix/reboot.h
+@@ -0,0 +1,12 @@
++#ifndef _ABIBITS_REBOOT_H
++#define _ABIBITS_REBOOT_H
++
++#define RB_AUTOBOOT 0x01234567
++#define RB_HALT_SYSTEM 0xcdef0123
++#define RB_ENABLE_CAD 0x89abcdef
++#define RB_DISABLE_CAD 0
++#define RB_POWER_OFF 0x4321fedc
++#define RB_SW_SUSPEND 0xd000fce2
++#define RB_KEXEC 0x45584543
++
++#endif /* _ABIBITS_REBOOT_H */
+diff --git mlibc-workdir/abis/cynix/sigevent.h mlibc-workdir/abis/cynix/sigevent.h
+new file mode 100644
+index 0000000..d764178
+--- /dev/null
++++ mlibc-workdir/abis/cynix/sigevent.h
+@@ -0,0 +1,24 @@
++#ifndef _ABIBITS_SIGEVENT_H
++#define _ABIBITS_SIGEVENT_H
++
++#include <abi-bits/sigval.h>
++#include <abi-bits/pid_t.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++struct sigevent {
++	int sigev_notify;
++	int sigev_signo;
++	union sigval sigev_value;
++	void (*sigev_notify_function)(union sigval);
++	/* MISSING: sigev_notify_attributes */
++};
++
++#ifdef __cplusplus
++}
++#endif
++
++#endif /* _ABIBITS_SIGEVENT_H */
++
 diff --git mlibc-workdir/abis/cynix/signal.h mlibc-workdir/abis/cynix/signal.h
 new file mode 100644
-index 0000000..4dcea40
+index 0000000..8626400
 --- /dev/null
 +++ mlibc-workdir/abis/cynix/signal.h
-@@ -0,0 +1,191 @@
+@@ -0,0 +1,179 @@
 +#ifndef _ABIBITS_SIGNAL_H
 +#define _ABIBITS_SIGNAL_H
 +
 +#include <abi-bits/pid_t.h>
 +#include <abi-bits/uid_t.h>
++#include <abi-bits/sigevent.h>
 +#include <bits/size_t.h>
-+
-+union sigval {
-+	int sival_int;
-+	void *sival_ptr;
-+};
 +
 +typedef struct {
 +	int si_signo;
@@ -161,14 +192,6 @@ index 0000000..4dcea40
 +#define CLD_STOPPED 5
 +#define CLD_CONTINUED 6
 +
-+struct sigevent {
-+	int sigev_notify;
-+	int sigev_signo;
-+	union sigval sigev_value;
-+	void (*sigev_notify_function)(union sigval);
-+	/* MISSING: sigev_notify_attributes */
-+};
-+
 +struct sigaction {
 +	union {
 +		void (*sa_handler)(int);
@@ -210,10 +233,10 @@ index 0000000..4dcea40
 +#endif /* _ABIBITS_SIGNAL_H */
 diff --git mlibc-workdir/abis/cynix/statvfs.h mlibc-workdir/abis/cynix/statvfs.h
 new file mode 100644
-index 0000000..7f53fc0
+index 0000000..370fcc1
 --- /dev/null
 +++ mlibc-workdir/abis/cynix/statvfs.h
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,36 @@
 +#ifndef _ABIBITS_STATVFS_H
 +#define _ABIBITS_STATVFS_H
 +
@@ -249,6 +272,69 @@ index 0000000..7f53fc0
 +
 +#endif /* _ABIBITS_STATVFS_H */
 +
++
+diff --git mlibc-workdir/abis/cynix/utmp-defines.h mlibc-workdir/abis/cynix/utmp-defines.h
+new file mode 100644
+index 0000000..16d071f
+--- /dev/null
++++ mlibc-workdir/abis/cynix/utmp-defines.h
+@@ -0,0 +1,14 @@
++#ifndef _ABIBITS_UTMP_DEFINES_H
++#define _ABIBITS_UTMP_DEFINES_H
++
++#define EMPTY 0
++#define RUN_LVL 1
++#define BOOT_TIME 2
++#define NEW_TIME 3
++#define OLD_TIME 4
++#define INIT_PROCESS 5
++#define LOGIN_PROCESS 6
++#define USER_PROCESS 7
++#define DEAD_PROCESS 8
++
++#endif /* _ABIBITS_UTMP_DEFINES_H */
+diff --git mlibc-workdir/abis/cynix/utmpx.h mlibc-workdir/abis/cynix/utmpx.h
+new file mode 100644
+index 0000000..4ad9db6
+--- /dev/null
++++ mlibc-workdir/abis/cynix/utmpx.h
+@@ -0,0 +1,36 @@
++#ifndef _ABIBITS_UTMPX_H
++#define _ABIBITS_UTMPX_H
++
++#include <abi-bits/pid_t.h>
++#include <bits/posix/timeval.h>
++
++#define __UT_HOSTSIZE 256
++#define __UT_NAMESIZE 32
++#define __UT_LINESIZE 32
++
++/* Struct definition taken from musl */
++struct utmpx {
++	short ut_type;
++	short __ut_pad1;
++	pid_t ut_pid;
++	char ut_line[__UT_LINESIZE];
++	char ut_id[4];
++	char ut_user[__UT_NAMESIZE];
++	char ut_host[__UT_HOSTSIZE];
++	struct {
++		short __e_termination;
++		short __e_exit;
++	} ut_exit;
++	int ut_session, __ut_pad2;
++	struct timeval ut_tv;
++	unsigned ut_addr_v6[4];
++	char __unused[20];
++};
++
++#define e_exit __e_exit
++#define e_termination __e_termination
++
++#define UTMPX_FILE "/var/run/utmp"
++#define WTMPX_FILE "/var/log/wtmp"
++
++#endif /* _ABIBITS_UTMPX_H */
 diff --git mlibc-workdir/ci/cynix.cross-file mlibc-workdir/ci/cynix.cross-file
 new file mode 100644
 index 0000000..04c1d3b
@@ -268,7 +354,7 @@ index 0000000..04c1d3b
 +cpu = 'x86_64'
 +endian = 'little'
 diff --git mlibc-clean/meson.build mlibc-workdir/meson.build
-index 42bee60..3c5d650 100644
+index 82c7138..4e33615 100644
 --- mlibc-clean/meson.build
 +++ mlibc-workdir/meson.build
 @@ -250,6 +250,10 @@ elif host_machine.system() == 'vinix'
@@ -279,32 +365,97 @@ index 42bee60..3c5d650 100644
 +	rtld_include_dirs += include_directories('sysdeps/cynix/include')
 +	libc_include_dirs += include_directories('sysdeps/cynix/include')
 +	subdir('sysdeps/cynix')
- elif host_machine.system() == 'lyre'
- 	rtld_include_dirs += include_directories('sysdeps/lyre/include')
- 	libc_include_dirs += include_directories('sysdeps/lyre/include')
-diff --git mlibc-clean/options/glibc/generic/execinfo.cpp mlibc-workdir/options/glibc/generic/execinfo.cpp
-index 3474615..e034881 100644
---- mlibc-clean/options/glibc/generic/execinfo.cpp
-+++ mlibc-workdir/options/glibc/generic/execinfo.cpp
-@@ -1,9 +1,10 @@
- #include <execinfo.h>
- #include <bits/ensure.h>
-+#include <mlibc/debug.hpp>
- 
- int backtrace(void **, int) {
--	__ensure(!"Not implemented");
--	__builtin_unreachable();
-+	mlibc::infoLogger() << "libc: backtrace() is not implemented!\n" << frg::endlog;
-+	return 0;
- }
- 
- char **backtrace_symbols(void *const *, int) {
+ elif host_machine.system() == 'lemon'
+ 	rtld_include_dirs += include_directories('sysdeps/lemon/include')
+ 	libc_include_dirs += include_directories('sysdeps/lemon/include')
+diff --git mlibc-workdir/sysdeps/cynix/crt-x86_64/Scrt1.S mlibc-workdir/sysdeps/cynix/crt-x86_64/Scrt1.S
+new file mode 100644
+index 0000000..d0e8213
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/crt-x86_64/Scrt1.S
+@@ -0,0 +1,8 @@
++.section .text
++.global _start
++_start:
++	mov %rsp, %rdi
++	lea main(%rip), %rsi
++	call __mlibc_entry
++.section .note.GNU-stack,"",%progbits
++
+diff --git mlibc-workdir/sysdeps/cynix/crt-x86_64/crt0.S mlibc-workdir/sysdeps/cynix/crt-x86_64/crt0.S
+new file mode 100644
+index 0000000..d0e8213
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/crt-x86_64/crt0.S
+@@ -0,0 +1,8 @@
++.section .text
++.global _start
++_start:
++	mov %rsp, %rdi
++	lea main(%rip), %rsi
++	call __mlibc_entry
++.section .note.GNU-stack,"",%progbits
++
+diff --git mlibc-workdir/sysdeps/cynix/crt-x86_64/crt1.S mlibc-workdir/sysdeps/cynix/crt-x86_64/crt1.S
+new file mode 100644
+index 0000000..6afb421
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/crt-x86_64/crt1.S
+@@ -0,0 +1,10 @@
++
++.section .text
++.global _start
++_start:
++	mov %rsp, %rdi
++	mov $main, %rsi
++	call __mlibc_entry
++
++.section .note.GNU-stack,"",%progbits
++
+diff --git mlibc-workdir/sysdeps/cynix/crt-x86_64/crti.S mlibc-workdir/sysdeps/cynix/crt-x86_64/crti.S
+new file mode 100644
+index 0000000..df93bc9
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/crt-x86_64/crti.S
+@@ -0,0 +1,15 @@
++	.ident "x86_64-cynix-mlibc crti"
++
++	.section .init
++	.globl	_init
++	.type	_init,@function
++_init:
++	push %rax
++
++	.section .fini
++	.globl	_fini
++	.type	_fini,@function
++_fini:
++	push %rax
++
++.section .note.GNU-stack,"",%progbits
+diff --git mlibc-workdir/sysdeps/cynix/crt-x86_64/crtn.S mlibc-workdir/sysdeps/cynix/crt-x86_64/crtn.S
+new file mode 100644
+index 0000000..797a826
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/crt-x86_64/crtn.S
+@@ -0,0 +1,11 @@
++.ident "x86_64-cynix-mlibc crtn"
++
++.section .init
++	pop %rax
++	ret
++
++.section .fini
++	pop %rax
++	ret
++
++.section .note.GNU-stack,"",%progbits
 diff --git mlibc-workdir/sysdeps/cynix/generic/entry.cpp mlibc-workdir/sysdeps/cynix/generic/entry.cpp
 new file mode 100644
-index 0000000..87e44ed
+index 0000000..2c61cd5
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/generic/entry.cpp
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,18 @@
 +#include <stdint.h>
 +#include <stdlib.h>
 +#include <bits/ensure.h>
@@ -313,33 +464,14 @@ index 0000000..87e44ed
 +#include <mlibc/all-sysdeps.hpp>
 +#include <bits/posix/posix_signal.h>
 +
-+// defined by the POSIX library
-+void __mlibc_initLocale();
-+
-+extern "C" uintptr_t *__dlapi_entrystack();
 +extern "C" void __dlapi_enter(uintptr_t *);
 +
 +extern char **environ;
-+static mlibc::exec_stack_data __mlibc_stack_data;
-+
-+struct LibraryGuard {
-+	LibraryGuard();
-+};
-+
-+static LibraryGuard guard;
-+
-+LibraryGuard::LibraryGuard() {
-+	__mlibc_initLocale();
-+
-+	// Parse the exec() stack.
-+	mlibc::parse_exec_stack(__dlapi_entrystack(), &__mlibc_stack_data);
-+	mlibc::set_startup_data(__mlibc_stack_data.argc, __mlibc_stack_data.argv,
-+			__mlibc_stack_data.envp);
-+}
 +
 +extern "C" void __mlibc_entry(uintptr_t *entry_stack, int (*main_fn)(int argc, char *argv[], char *env[])) {
 +	__dlapi_enter(entry_stack);
-+	auto result = main_fn(__mlibc_stack_data.argc, __mlibc_stack_data.argv, environ);
++
++	auto result = main_fn(mlibc::entry_stack.argc, mlibc::entry_stack.argv, environ);
 +	exit(result);
 +}
 diff --git mlibc-workdir/sysdeps/cynix/generic/generic.cpp mlibc-workdir/sysdeps/cynix/generic/generic.cpp
@@ -713,88 +845,6 @@ index 0000000..7c86ffd
 +int reboot(int what) {
 +	return 0;
 +}
-diff --git mlibc-workdir/sysdeps/cynix/generic/utmpx.c mlibc-workdir/sysdeps/cynix/generic/utmpx.c
-new file mode 100644
-index 0000000..61bd6e7
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/generic/utmpx.c
-@@ -0,0 +1,76 @@
-+#include <bits/ensure.h>
-+#include <stddef.h>
-+#include <errno.h>
-+#include <utmpx.h>
-+#include <stdio.h>
-+#include <time.h>
-+#include <paths.h>
-+#include <unistd.h>
-+#include <fcntl.h>
-+
-+int utmpx_file = -1;
-+
-+void updwtmpx(const char *, const struct utmpx *) {
-+	// Empty as musl does
-+}
-+
-+void endutxent(void) {
-+	if (utmpx_file >= 0) {
-+		close(utmpx_file);
-+	}
-+}
-+
-+void setutxent(void) {
-+	if (utmpx_file < 0) {
-+		utmpx_file = open(UTMPX_FILE, O_RDWR | O_CREAT, 0755);
-+	} else {
-+		lseek(utmpx_file, 0, SEEK_SET);
-+	}
-+}
-+
-+static struct utmpx returned;
-+
-+struct utmpx *getutxent(void) {
-+	if (utmpx_file < 0) {
-+		setutxent();
-+		if (utmpx_file < 0) {
-+			return NULL;
-+		}
-+	}
-+
-+	if (read(utmpx_file, &returned, sizeof(struct utmpx)) != sizeof(struct utmpx)) {
-+		return NULL;
-+	}
-+
-+	return &returned;
-+}
-+
-+struct utmpx *pututxline(const struct utmpx *added) {
-+	if (utmpx_file < 0) {
-+		setutxent();
-+		if (utmpx_file < 0) {
-+			return NULL;
-+		}
-+	}
-+
-+	lseek(utmpx_file, 0, SEEK_END);
-+	if (write(utmpx_file, added, sizeof(struct utmpx)) != sizeof(struct utmpx)) {
-+		return NULL;
-+	}
-+
-+	return (struct utmpx *)added;
-+}
-+
-+int utmpxname(const char *path) {
-+	if (utmpx_file > 0) {
-+		close(utmpx_file);
-+	}
-+
-+	utmpx_file = open(path, O_RDWR | O_CREAT, 0755);
-+	if (utmpx_file > 0) {
-+		lseek(utmpx_file, 0, SEEK_END);
-+		return 1;
-+	} else {
-+		return 0;
-+	}
-+}
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/access.h mlibc-workdir/sysdeps/cynix/include/abi-bits/access.h
 new file mode 120000
 index 0000000..cb83931
@@ -842,14 +892,6 @@ index 0000000..bca881e
 +++ mlibc-workdir/sysdeps/cynix/include/abi-bits/dev_t.h
 @@ -0,0 +1 @@
 +../../../../abis/linux/dev_t.h
-\ No newline at end of file
-diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/epoll.h mlibc-workdir/sysdeps/cynix/include/abi-bits/epoll.h
-new file mode 120000
-index 0000000..eb4b76d
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/include/abi-bits/epoll.h
-@@ -0,0 +1 @@
-+../../../../abis/linux/epoll.h
 \ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/errno.h mlibc-workdir/sysdeps/cynix/include/abi-bits/errno.h
 new file mode 120000
@@ -907,14 +949,6 @@ index 0000000..4c20aca
 @@ -0,0 +1 @@
 +../../../../abis/linux/ino_t.h
 \ No newline at end of file
-diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/inotify.h mlibc-workdir/sysdeps/cynix/include/abi-bits/inotify.h
-new file mode 120000
-index 0000000..b5cb282
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/include/abi-bits/inotify.h
-@@ -0,0 +1 @@
-+../../../../abis/linux/inotify.h
-\ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/ioctls.h mlibc-workdir/sysdeps/cynix/include/abi-bits/ioctls.h
 new file mode 120000
 index 0000000..595106b
@@ -922,6 +956,14 @@ index 0000000..595106b
 +++ mlibc-workdir/sysdeps/cynix/include/abi-bits/ioctls.h
 @@ -0,0 +1 @@
 +../../../../abis/linux/ioctls.h
+\ No newline at end of file
+diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/ipc.h mlibc-workdir/sysdeps/cynix/include/abi-bits/ipc.h
+new file mode 120000
+index 0000000..2c7ffc4
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/include/abi-bits/ipc.h
+@@ -0,0 +1 @@
++../../../../abis/linux/ipc.h
 \ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/limits.h mlibc-workdir/sysdeps/cynix/include/abi-bits/limits.h
 new file mode 120000
@@ -987,21 +1029,13 @@ index 0000000..8ea6a0a
 @@ -0,0 +1 @@
 +../../../../abis/linux/poll.h
 \ No newline at end of file
-diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/ptrace.h mlibc-workdir/sysdeps/cynix/include/abi-bits/ptrace.h
-new file mode 120000
-index 0000000..b2517b2
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/include/abi-bits/ptrace.h
-@@ -0,0 +1 @@
-+../../../../abis/linux/ptrace.h
-\ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/reboot.h mlibc-workdir/sysdeps/cynix/include/abi-bits/reboot.h
 new file mode 120000
-index 0000000..77013a4
+index 0000000..5d0a9ab
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/include/abi-bits/reboot.h
 @@ -0,0 +1 @@
-+../../../../abis/linux/reboot.h
++../../../../abis/cynix/reboot.h
 \ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/resource.h mlibc-workdir/sysdeps/cynix/include/abi-bits/resource.h
 new file mode 120000
@@ -1010,6 +1044,14 @@ index 0000000..88d7402
 +++ mlibc-workdir/sysdeps/cynix/include/abi-bits/resource.h
 @@ -0,0 +1 @@
 +../../../../abis/linux/resource.h
+\ No newline at end of file
+diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/rlim_t.h mlibc-workdir/sysdeps/cynix/include/abi-bits/rlim_t.h
+new file mode 120000
+index 0000000..e92eb5f
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/include/abi-bits/rlim_t.h
+@@ -0,0 +1 @@
++../../../../abis/linux/rlim_t.h
 \ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/seek-whence.h mlibc-workdir/sysdeps/cynix/include/abi-bits/seek-whence.h
 new file mode 120000
@@ -1027,6 +1069,14 @@ index 0000000..067d8c4
 @@ -0,0 +1 @@
 +../../../../abis/linux/shm.h
 \ No newline at end of file
+diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/sigevent.h mlibc-workdir/sysdeps/cynix/include/abi-bits/sigevent.h
+new file mode 120000
+index 0000000..1750418
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/include/abi-bits/sigevent.h
+@@ -0,0 +1 @@
++../../../../abis/cynix/sigevent.h
+\ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/signal.h mlibc-workdir/sysdeps/cynix/include/abi-bits/signal.h
 new file mode 120000
 index 0000000..56c460e
@@ -1034,6 +1084,14 @@ index 0000000..56c460e
 +++ mlibc-workdir/sysdeps/cynix/include/abi-bits/signal.h
 @@ -0,0 +1 @@
 +../../../../abis/cynix/signal.h
+\ No newline at end of file
+diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/sigval.h mlibc-workdir/sysdeps/cynix/include/abi-bits/sigval.h
+new file mode 120000
+index 0000000..ccd43a5
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/include/abi-bits/sigval.h
+@@ -0,0 +1 @@
++../../../../abis/linux/sigval.h
 \ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/socket.h mlibc-workdir/sysdeps/cynix/include/abi-bits/socket.h
 new file mode 120000
@@ -1059,14 +1117,6 @@ index 0000000..1f63b41
 @@ -0,0 +1 @@
 +../../../../abis/linux/stat.h
 \ No newline at end of file
-diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/statfs.h mlibc-workdir/sysdeps/cynix/include/abi-bits/statfs.h
-new file mode 120000
-index 0000000..e3d202f
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/include/abi-bits/statfs.h
-@@ -0,0 +1 @@
-+../../../../abis/linux/statfs.h
-\ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/statvfs.h mlibc-workdir/sysdeps/cynix/include/abi-bits/statvfs.h
 new file mode 120000
 index 0000000..8d51d02
@@ -1074,14 +1124,6 @@ index 0000000..8d51d02
 +++ mlibc-workdir/sysdeps/cynix/include/abi-bits/statvfs.h
 @@ -0,0 +1 @@
 +../../../../abis/cynix/statvfs.h
-\ No newline at end of file
-diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/statx.h mlibc-workdir/sysdeps/cynix/include/abi-bits/statx.h
-new file mode 120000
-index 0000000..8702a1d
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/include/abi-bits/statx.h
-@@ -0,0 +1 @@
-+../../../../abis/linux/statx.h
 \ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/suseconds_t.h mlibc-workdir/sysdeps/cynix/include/abi-bits/suseconds_t.h
 new file mode 120000
@@ -1115,6 +1157,22 @@ index 0000000..b306777
 @@ -0,0 +1 @@
 +../../../../abis/linux/uid_t.h
 \ No newline at end of file
+diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/utmp-defines.h mlibc-workdir/sysdeps/cynix/include/abi-bits/utmp-defines.h
+new file mode 120000
+index 0000000..5a934b8
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/include/abi-bits/utmp-defines.h
+@@ -0,0 +1 @@
++../../../../abis/cynix/utmp-defines.h
+\ No newline at end of file
+diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/utmpx.h mlibc-workdir/sysdeps/cynix/include/abi-bits/utmpx.h
+new file mode 120000
+index 0000000..20cc604
+--- /dev/null
++++ mlibc-workdir/sysdeps/cynix/include/abi-bits/utmpx.h
+@@ -0,0 +1 @@
++../../../../abis/cynix/utmpx.h
+\ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/utsname.h mlibc-workdir/sysdeps/cynix/include/abi-bits/utsname.h
 new file mode 120000
 index 0000000..b285754
@@ -1138,14 +1196,6 @@ index 0000000..feb2840
 +++ mlibc-workdir/sysdeps/cynix/include/abi-bits/wait.h
 @@ -0,0 +1 @@
 +../../../../abis/linux/wait.h
-\ No newline at end of file
-diff --git mlibc-workdir/sysdeps/cynix/include/abi-bits/xattr.h mlibc-workdir/sysdeps/cynix/include/abi-bits/xattr.h
-new file mode 120000
-index 0000000..66412d7
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/include/abi-bits/xattr.h
-@@ -0,0 +1 @@
-+../../../../abis/linux/xattr.h
 \ No newline at end of file
 diff --git mlibc-workdir/sysdeps/cynix/include/asm/ioctl.h mlibc-workdir/sysdeps/cynix/include/asm/ioctl.h
 new file mode 100644
@@ -1793,7 +1843,7 @@ index 0000000..d5e6d88
 +#endif /* _LINUX_FB_H */
 diff --git mlibc-workdir/sysdeps/cynix/include/mntent.h mlibc-workdir/sysdeps/cynix/include/mntent.h
 new file mode 100644
-index 0000000..bafd289
+index 0000000..42f0184
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/include/mntent.h
 @@ -0,0 +1,50 @@
@@ -1849,7 +1899,7 @@ index 0000000..bafd289
 +#endif /* _MNTENT_H */
 diff --git mlibc-workdir/sysdeps/cynix/include/sys/mount.h mlibc-workdir/sysdeps/cynix/include/sys/mount.h
 new file mode 100644
-index 0000000..b19f3d7
+index 0000000..844abdb
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/include/sys/mount.h
 @@ -0,0 +1,54 @@
@@ -1909,7 +1959,7 @@ index 0000000..b19f3d7
 +#endif /* _SYS_MOUNT_H */
 diff --git mlibc-workdir/sysdeps/cynix/include/sys/reboot.h mlibc-workdir/sysdeps/cynix/include/sys/reboot.h
 new file mode 100644
-index 0000000..6c4e495
+index 0000000..0628ae4
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/include/sys/reboot.h
 @@ -0,0 +1,20 @@
@@ -1935,7 +1985,7 @@ index 0000000..6c4e495
 +#endif /* MLIBC_SYS_REBOOT_H */
 diff --git mlibc-workdir/sysdeps/cynix/include/sys/sysmacros.h mlibc-workdir/sysdeps/cynix/include/sys/sysmacros.h
 new file mode 100644
-index 0000000..2d696e3
+index 0000000..9682d01
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/include/sys/sysmacros.h
 @@ -0,0 +1,33 @@
@@ -1972,81 +2022,12 @@ index 0000000..2d696e3
 +#endif
 +
 +#endif /* _SYS_SYSMACROS_H */
-diff --git mlibc-workdir/sysdeps/cynix/include/utmpx.h mlibc-workdir/sysdeps/cynix/include/utmpx.h
-new file mode 100644
-index 0000000..2d7d3e1
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/include/utmpx.h
-@@ -0,0 +1,63 @@
-+
-+#ifndef  _UTMPX_H
-+#define  _UTMPX_H
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+#include <abi-bits/pid_t.h>
-+#include <bits/posix/timeval.h>
-+
-+#define UTMPX_FILE "/var/run/utmp"
-+#define WTMPX_FILE "/var/run/wtmp"
-+
-+/* Struct definition taken from musl */
-+struct utmpx {
-+	short ut_type;
-+	short __ut_pad1;
-+	pid_t ut_pid;
-+	char ut_line[32];
-+	char ut_id[4];
-+	char ut_user[32];
-+	char ut_host[256];
-+	struct {
-+		short __e_termination;
-+		short __e_exit;
-+	} ut_exit;
-+	int ut_session, __ut_pad2;
-+	struct timeval ut_tv;
-+	unsigned ut_addr_v6[4];
-+	char __unused[20];
-+};
-+
-+#ifndef __MLIBC_ABI_ONLY
-+
-+void updwtmpx(const char *, const struct utmpx *);
-+int utmpxname(const char *);
-+struct utmpx *pututxline(const struct utmpx *);
-+struct utmpx *getutxent(void);
-+void setutxent(void);
-+void endutxent(void);
-+
-+#endif /* !__MLIBC_ABI_ONLY */
-+
-+#define EMPTY           0
-+#define RUN_LVL         1
-+#define BOOT_TIME       2
-+#define NEW_TIME        3
-+#define OLD_TIME        4
-+#define INIT_PROCESS    5
-+#define LOGIN_PROCESS   6
-+#define USER_PROCESS    7
-+#define DEAD_PROCESS    8
-+
-+#define __UT_HOSTSIZE 256
-+#define __UT_NAMESIZE 32
-+#define __UT_LINESIZE 32
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif /* _UTMPX_H */
 diff --git mlibc-workdir/sysdeps/cynix/meson.build mlibc-workdir/sysdeps/cynix/meson.build
 new file mode 100644
-index 0000000..7b26222
+index 0000000..2350858
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/meson.build
-@@ -0,0 +1,123 @@
+@@ -0,0 +1,130 @@
 +sysdep_supported_options = {
 +	'posix': true,
 +	'linux': false,
@@ -2064,7 +2045,6 @@ index 0000000..7b26222
 +	'generic/mntent.cpp',
 +	'generic/mount.cpp',
 +	'generic/reboot.cpp',
-+	'generic/utmpx.c',
 +)
 +
 +if not no_headers
@@ -2078,7 +2058,6 @@ index 0000000..7b26222
 +		'include/abi-bits/reboot.h',
 +		'include/abi-bits/resource.h',
 +		'include/abi-bits/stat.h',
-+		'include/abi-bits/statx.h',
 +		'include/abi-bits/signal.h',
 +		'include/abi-bits/socket.h',
 +		'include/abi-bits/termios.h',
@@ -2096,23 +2075,24 @@ index 0000000..7b26222
 +		'include/abi-bits/wait.h',
 +		'include/abi-bits/limits.h',
 +		'include/abi-bits/utsname.h',
-+		'include/abi-bits/ptrace.h',
 +		'include/abi-bits/poll.h',
-+		'include/abi-bits/epoll.h',
 +		'include/abi-bits/packet.h',
-+		'include/abi-bits/inotify.h',
 +		'include/abi-bits/clockid_t.h',
++		'include/abi-bits/ipc.h',
 +		'include/abi-bits/shm.h',
 +		'include/abi-bits/mqueue.h',
 +		'include/abi-bits/suseconds_t.h',
 +		'include/abi-bits/fsfilcnt_t.h',
 +		'include/abi-bits/fsblkcnt_t.h',
 +		'include/abi-bits/socklen_t.h',
-+		'include/abi-bits/statfs.h',
 +		'include/abi-bits/statvfs.h',
 +		'include/abi-bits/ioctls.h',
-+		'include/abi-bits/xattr.h',
 +		'include/abi-bits/msg.h',
++		'include/abi-bits/rlim_t.h',
++		'include/abi-bits/sigval.h',
++		'include/abi-bits/sigevent.h',
++		'include/abi-bits/utmpx.h',
++		'include/abi-bits/utmp-defines.h',
 +		subdir: 'abi-bits',
 +		follow_symlinks: true
 +	)
@@ -2137,82 +2117,44 @@ index 0000000..7b26222
 +
 +	install_headers(
 +		'include/mntent.h',
-+		'include/utmpx.h',
 +	)
 +endif
 +
 +if not headers_only
-+	crt = custom_target('crt0',
++	crt = custom_target(
 +		build_by_default: true,
 +		command: c_compiler.cmd_array() + ['-c', '-o', '@OUTPUT@', '@INPUT@'],
-+		input: host_machine.cpu_family() / 'crt-src/crt0.S',
-+		output: 'crt0.o',
++		input: files('crt-' + host_machine.cpu_family() / 'crt1.S'),
++		output: 'crt1.o',
 +		install: true,
 +		install_dir: get_option('libdir')
 +	)
 +
-+	custom_target('crti',
++	crt_pie = custom_target(
 +		build_by_default: true,
 +		command: c_compiler.cmd_array() + ['-c', '-o', '@OUTPUT@', '@INPUT@'],
-+		input: host_machine.cpu_family() / 'crt-src/crti.S',
++		input: files('crt-' + host_machine.cpu_family() / 'Scrt1.S'),
++		output: 'Scrt1.o',
++		install: true,
++		install_dir: get_option('libdir')
++	)
++
++	custom_target(
++		build_by_default: true,
++		command: c_compiler.cmd_array() + ['-c', '-o', '@OUTPUT@', '@INPUT@'],
++		input: files('crt-' + host_machine.cpu_family() / 'crti.S'),
 +		output: 'crti.o',
 +		install: true,
 +		install_dir: get_option('libdir')
 +	)
 +
-+	custom_target('crtn',
++	custom_target(
 +		build_by_default: true,
 +		command: c_compiler.cmd_array() + ['-c', '-o', '@OUTPUT@', '@INPUT@'],
-+		input: host_machine.cpu_family() / 'crt-src/crtn.S',
++		input: files('crt-' + host_machine.cpu_family() / 'crtn.S'),
 +		output: 'crtn.o',
 +		install: true,
 +		install_dir: get_option('libdir')
 +	)
 +endif
-+
-diff --git mlibc-workdir/sysdeps/cynix/x86_64/crt-src/crt0.S mlibc-workdir/sysdeps/cynix/x86_64/crt-src/crt0.S
-new file mode 100644
-index 0000000..d0e8213
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/x86_64/crt-src/crt0.S
-@@ -0,0 +1,8 @@
-+.section .text
-+.global _start
-+_start:
-+	mov %rsp, %rdi
-+	lea main(%rip), %rsi
-+	call __mlibc_entry
-+.section .note.GNU-stack,"",%progbits
-+
-diff --git mlibc-workdir/sysdeps/cynix/x86_64/crt-src/crti.S mlibc-workdir/sysdeps/cynix/x86_64/crt-src/crti.S
-new file mode 100644
-index 0000000..911b078
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/x86_64/crt-src/crti.S
-@@ -0,0 +1,11 @@
-+.section .init
-+.global _init
-+_init:
-+	push %rax
-+
-+.section .fini
-+.global _fini
-+_fini:
-+	push %rax
-+.section .note.GNU-stack,"",%progbits
-+
-diff --git mlibc-workdir/sysdeps/cynix/x86_64/crt-src/crtn.S mlibc-workdir/sysdeps/cynix/x86_64/crt-src/crtn.S
-new file mode 100644
-index 0000000..0187e50
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/x86_64/crt-src/crtn.S
-@@ -0,0 +1,9 @@
-+.section .init
-+	pop %rax
-+	ret
-+
-+.section .fini
-+	pop %rax
-+	ret
-+.section .note.GNU-stack,"",%progbits
 +

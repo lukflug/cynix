@@ -1,13 +1,13 @@
 #! /bin/sh
 
 name=at-spi2-core
-version=2.52.0
+version=2.56.3
 revision=1
-tarball_url="https://download.gnome.org/sources/at-spi2-core/2.52/at-spi2-core-${version}.tar.xz"
-tarball_blake2b="642cf8a63700ed5d5e20eb356f60c5d5e771d34bb0a373e95c71898ea2318c41484faec736ec44b1162fac22a075ca5f7b4698b105972ea060d107f9afc7f5b9"
-imagedeps="meson ninja-build libglib2.0-dev"
+tarball_url="https://download.gnome.org/sources/at-spi2-core/2.56/at-spi2-core-${version}.tar.xz"
+tarball_blake2b="524127c427d802180ebda0f9a683d22ac4849244eb67f5aa906f8694a63bd8501c0e302344b036eceeda6ae5d8db4069627fecee977bcc5c69b63a8925d9f161"
+imagedeps="libglib2.0-dev"
 hostdeps="gcc pkg-config"
-deps="core-libs bash dbus glib gsettings-desktop-schemas libx11 libxi libxkbcommon libxml libxtst"
+deps="core-libs bash dbus glib2 gsettings-desktop-schemas libx11 libxi libxkbcommon libxml2 libxtst"
 
 configure() {
     meson_configure \
@@ -16,11 +16,11 @@ configure() {
 }
 
 build() {
-    ninja -j${parallelism}
+    meson compile -j${parallelism}
 }
 
 package() {
-    DESTDIR="${dest_dir}" ninja install
+    DESTDIR="${dest_dir}" meson install --no-rebuild
 
     post_package_strip
 }

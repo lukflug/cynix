@@ -1,11 +1,12 @@
 #! /bin/sh
 
-name=llvm
-version=18.1.7
+name=llvm-libs
+repology_id="llvm"
+version=20.1.8
 revision=1
 tarball_url="https://github.com/llvm/llvm-project/releases/download/llvmorg-${version}/llvm-project-${version}.src.tar.xz"
-tarball_blake2b="b8c37bd131fb5f3131bfab4fbad7aa811079ca10723faa14779253bc62b1ee08d4e04650e1da883297ed88a62d518b868a1f13cf57d03233254fd01209da5c02"
-imagedeps="build-essential cmake ninja-build git"
+tarball_blake2b="7657ac0b26acc5affb1bfc91b912ade3191c5d77f3979d5a80d5f6ce52f56a7d1c448bd257398390bf10838f02faa6f3ece37a7327cced69d165ec2e2e699316"
+imagedeps="build-essential"
 hostdeps="gcc pkg-config"
 deps="core-libs ncurses zlib zstd libffi"
 
@@ -25,11 +26,11 @@ configure() {
 }
 
 build() {
-    ninja -j${parallelism}
+    cmake --build . -j${parallelism}
 }
 
 package() {
-    DESTDIR="${dest_dir}" ninja install
+    DESTDIR="${dest_dir}" cmake --install .
 
     rm -rf "${dest_dir}${prefix}"/lib/*.a
 

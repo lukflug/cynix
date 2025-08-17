@@ -1,11 +1,11 @@
 #! /bin/sh
 
 name=frigg
-version=922d38debf0b721f14448901eef80525c5b4bed9
-revision=1
-tarball_url="https://github.com/managarm/frigg/archive/${version}.tar.gz"
-tarball_blake2b="d0496dedd43d41b92a335e4190499ca085f3d75b9b119c1ab545b87fb2c1d5461168dc2c6adaf9d4958484b45a7cabdeda2fecad062a2a9ade2f3ecd740e36f8"
-imagedeps="meson ninja-build"
+skip_pkg_check=yes
+version=0.0git
+revision=3
+git_url="https://github.com/managarm/frigg.git"
+commit=5304639c1c9fd3713fd759453b0415b968dcaa06
 hostdeps="pkg-config"
 
 configure() {
@@ -15,11 +15,11 @@ configure() {
 }
 
 build() {
-    ninja -j${parallelism}
+    meson compile -j${parallelism}
 }
 
 package() {
-    DESTDIR="${dest_dir}" ninja install
+    DESTDIR="${dest_dir}" meson install --no-rebuild
 
     post_package_strip
 }

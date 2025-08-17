@@ -1,13 +1,13 @@
 #! /bin/sh
 
 name=pango
-version=1.54.0
+version=1.56.4
 revision=1
-tarball_url="https://download.gnome.org/sources/pango/1.54/pango-${version}.tar.xz"
-tarball_blake2b="92c389ab3f21631c245575e30804ffee6fef7b60bc6acdf08159aa325d878cf335203267720aec9143ea2a4e590578424cd64011f73da22e1b0beca85e85a276"
-imagedeps="meson ninja-build libglib2.0-dev"
+tarball_url="https://download.gnome.org/sources/pango/1.56/pango-${version}.tar.xz"
+tarball_blake2b="727261844a914af5229379f7a0b41c2cc05df106523189f31112e50ba01a94bf45f17eacfb3e91fe51a2ea1d09132b6021cf51b8a0986ba258e651fc48e3f468"
+imagedeps="libglib2.0-dev"
 hostdeps="gcc pkg-config"
-deps="core-libs glib fontconfig freetype2 fribidi cairo libx11 harfbuzz libxft"
+deps="core-libs glib2 fontconfig freetype2 fribidi cairo libx11 harfbuzz libxft"
 
 configure() {
     meson_configure \
@@ -15,11 +15,11 @@ configure() {
 }
 
 build() {
-    ninja -j${parallelism}
+    meson compile -j${parallelism}
 }
 
 package() {
-    DESTDIR="${dest_dir}" ninja install
+    DESTDIR="${dest_dir}" meson install --no-rebuild
 
     post_package_strip
 }

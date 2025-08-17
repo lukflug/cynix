@@ -104,7 +104,7 @@ rm -rf mlibc/build
 clone_repo_commit \
     https://github.com/managarm/mlibc.git \
     mlibc \
-    c906cb5ade774bb43135054ba75530c15ddc94d8
+    5be40073b9679457677d933cbc20709645f127c7
 
 # XXX remove once upstreamed
 ( cd mlibc && patch -p1 < ../../patches/mlibc/jinx-working-patch.patch )

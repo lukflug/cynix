@@ -1,12 +1,12 @@
 #! /bin/sh
 
 name=sqlite
-version=3.46.0
+version=3.50.3
 revision=1
-tarball_url="https://sqlite.org/2024/sqlite-autoconf-3460000.tar.gz"
-tarball_blake2b="2f484823b84ab758e21960ac6b730cefa62c26f7ccf5344299a26e6f559d0e02cfd4cff5f5921effdee6e2e49d2ab36b1f91cffdd8599bc2189efab44bf4b197"
-source_hostdeps="automake autoconf libtool pkg-config"
-hostdeps="gcc autoconf automake libtool pkg-config"
+tarball_url="https://sqlite.org/2025/sqlite-autoconf-3500300.tar.gz"
+tarball_blake2b="815ed2f27bb64c70057dd18f2cb7e00ff7be1e42f683052ee327b7f6b6bbf8cd811c9b7fb81552621b703d1e4459d91ba8cb40e46f9a04793caeb07cbc3d9b06"
+imagedeps="build-essential"
+hostdeps="gcc pkg-config"
 deps="core-libs readline zlib"
 
 prepare() {
@@ -14,10 +14,23 @@ prepare() {
 }
 
 configure() {
-    autotools_configure \
-        CFLAGS="$TARGET_CFLAGS -DSQLITE_ENABLE_FTS3=1 -DSQLITE_ENABLE_FTS4=1 -DSQLITE_ENABLE_COLUMN_METADATA=1 -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 -DSQLITE_ENABLE_DBSTAT_VTAB=1 -DSQLITE_SECURE_DELETE=1 -DSQLITE_ENABLE_FTS3_TOKENIZER=1" \
+    "${source_dir}/configure" \
+        --host=${OS_TRIPLET} \
+        --prefix=${prefix} \
+        --sysconfdir=/etc \
+        --localstatedir=/var \
+        --bindir=${prefix}/bin \
+        --sbindir=${prefix}/bin \
+        --libdir=${prefix}/lib \
+        --soname=legacy \
+        --disable-static \
+        --enable-shared \
+        --enable-fts4 \
+        --enable-fts5 \
         --enable-readline \
-        --enable-fts5
+        --with-readline-header=${sysroot_dir}${prefix}/include/readline/readline.h \
+        CFLAGS="$TARGET_CFLAGS -DSQLITE_ENABLE_COLUMN_METADATA=1 -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 -DSQLITE_ENABLE_DBSTAT_VTAB=1 -DSQLITE_SECURE_DELETE=1" \
+        LDFLAGS="$TARGET_LDFLAGS"
 }
 
 build() {
