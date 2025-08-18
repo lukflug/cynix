@@ -382,20 +382,6 @@ index 0000000..d0e8213
 +	call __mlibc_entry
 +.section .note.GNU-stack,"",%progbits
 +
-diff --git mlibc-workdir/sysdeps/cynix/crt-x86_64/crt0.S mlibc-workdir/sysdeps/cynix/crt-x86_64/crt0.S
-new file mode 100644
-index 0000000..d0e8213
---- /dev/null
-+++ mlibc-workdir/sysdeps/cynix/crt-x86_64/crt0.S
-@@ -0,0 +1,8 @@
-+.section .text
-+.global _start
-+_start:
-+	mov %rsp, %rdi
-+	lea main(%rip), %rsi
-+	call __mlibc_entry
-+.section .note.GNU-stack,"",%progbits
-+
 diff --git mlibc-workdir/sysdeps/cynix/crt-x86_64/crt1.S mlibc-workdir/sysdeps/cynix/crt-x86_64/crt1.S
 new file mode 100644
 index 0000000..6afb421
@@ -452,17 +438,15 @@ index 0000000..797a826
 +.section .note.GNU-stack,"",%progbits
 diff --git mlibc-workdir/sysdeps/cynix/generic/entry.cpp mlibc-workdir/sysdeps/cynix/generic/entry.cpp
 new file mode 100644
-index 0000000..2c61cd5
+index 0000000..d1f4d4b
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/generic/entry.cpp
-@@ -0,0 +1,18 @@
+@@ -0,0 +1,16 @@
 +#include <stdint.h>
 +#include <stdlib.h>
 +#include <bits/ensure.h>
 +#include <mlibc/debug.hpp>
 +#include <mlibc/elf/startup.h>
-+#include <mlibc/all-sysdeps.hpp>
-+#include <bits/posix/posix_signal.h>
 +
 +extern "C" void __dlapi_enter(uintptr_t *);
 +
@@ -476,10 +460,10 @@ index 0000000..2c61cd5
 +}
 diff --git mlibc-workdir/sysdeps/cynix/generic/generic.cpp mlibc-workdir/sysdeps/cynix/generic/generic.cpp
 new file mode 100644
-index 0000000..0b4cebc
+index 0000000..df47de1
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/generic/generic.cpp
-@@ -0,0 +1,227 @@
+@@ -0,0 +1,229 @@
 +#include <bits/ensure.h>
 +#include <mlibc/debug.hpp>
 +#include <mlibc/all-sysdeps.hpp>
@@ -489,6 +473,8 @@ index 0000000..0b4cebc
 +#include <limits.h>
 +#include <asm/ioctls.h>
 +#include <stdlib.h>
++
++#pragma GCC diagnostic ignored "-Wunused-parameter"
 +
 +#define STUB_ONLY {                             \
 +	__ensure(!"STUB_ONLY function was called"); \
@@ -709,10 +695,10 @@ index 0000000..0b4cebc
 +} // namespace mlibc
 diff --git mlibc-workdir/sysdeps/cynix/generic/mntent.cpp mlibc-workdir/sysdeps/cynix/generic/mntent.cpp
 new file mode 100644
-index 0000000..d064af3
+index 0000000..7b9d6e6
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/generic/mntent.cpp
-@@ -0,0 +1,97 @@
+@@ -0,0 +1,82 @@
 +#include <errno.h>
 +#include <mntent.h>
 +#include <stdio.h>
@@ -760,65 +746,52 @@ index 0000000..d064af3
 +
 +/* Adapted from musl */
 +struct mntent *getmntent_r(FILE *f, struct mntent *mnt, char *linebuf, int buflen) {
-+	int n[8];
 +	bool use_internal = (linebuf == SENTINEL);
-+	int len;
-+	size_t i;
 +
-+	mnt->mnt_freq = 0;
-+	mnt->mnt_passno = 0;
++	char source[60];
++	char target[30];
++	char fs[30];
++	char options[30];
++	int dump;
++	int pass;
 +
 +	do {
-+		if(use_internal) {
++		if (use_internal) {
 +			getline(&internal_buf, &internal_bufsize, f);
 +			linebuf = internal_buf;
 +		} else {
 +			fgets(linebuf, buflen, f);
 +		}
-+		if(feof(f) || ferror(f)) {
-+			return 0;
-+		}
-+		if(!strchr(linebuf, '\n')) {
-+			fscanf(f, "%*[^\n]%*[\n]");
-+			errno = ERANGE;
++
++		if (feof(f) || ferror(f)) {
 +			return 0;
 +		}
 +
-+		len = strlen(linebuf);
-+		if(len > INT_MAX) {
++		if (sscanf(linebuf, "%s %s %s %s %d %d\n", source, target, fs, options,
++		           &dump, &pass) != 6) {
 +			continue;
 +		}
++	} while(linebuf[0] == '#');
 +
-+		for(i = 0; i < sizeof n / sizeof *n; i++) {
-+			n[i] = len;
-+		}
-+
-+		sscanf(linebuf, " %n%*s%n %n%*s%n %n%*s%n %n%*s%n %d %d",
-+			n, n + 1, n + 2, n + 3, n + 4, n + 5, n + 6, n + 7,
-+			&mnt->mnt_freq, &mnt->mnt_passno);
-+	} while(linebuf[n[0]] == '#' || n[1] == len);
-+
-+	linebuf[n[1]] = 0;
-+	linebuf[n[3]] = 0;
-+	linebuf[n[5]] = 0;
-+	linebuf[n[7]] = 0;
-+
-+	mnt->mnt_fsname = linebuf + n[0];
-+	mnt->mnt_dir = linebuf + n[2];
-+	mnt->mnt_type = linebuf + n[4];
-+	mnt->mnt_opts = linebuf + n[6];
-+
++	mnt->mnt_fsname = strdup(source);
++	mnt->mnt_dir    = strdup(target);
++	mnt->mnt_type   = strdup(fs);
++	mnt->mnt_opts   = strdup(options);
++	mnt->mnt_freq   = dump;
++	mnt->mnt_passno = pass;
 +	return mnt;
 +}
 diff --git mlibc-workdir/sysdeps/cynix/generic/mount.cpp mlibc-workdir/sysdeps/cynix/generic/mount.cpp
 new file mode 100644
-index 0000000..f10254d
+index 0000000..1490c72
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/generic/mount.cpp
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,18 @@
 +#include <errno.h>
 +#include <sys/mount.h>
 +#include <bits/ensure.h>
++
++#pragma GCC diagnostic ignored "-Wunused-parameter"
 +
 +int mount(const char *source, const char *target,
 +		const char *fstype, unsigned long flags, const void *data) {
@@ -834,13 +807,15 @@ index 0000000..f10254d
 +}
 diff --git mlibc-workdir/sysdeps/cynix/generic/reboot.cpp mlibc-workdir/sysdeps/cynix/generic/reboot.cpp
 new file mode 100644
-index 0000000..7c86ffd
+index 0000000..c8707f0
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/generic/reboot.cpp
-@@ -0,0 +1,7 @@
+@@ -0,0 +1,9 @@
 +#include <errno.h>
 +#include <sys/reboot.h>
 +#include <bits/ensure.h>
++
++#pragma GCC diagnostic ignored "-Wunused-parameter"
 +
 +int reboot(int what) {
 +	return 0;
@@ -2024,7 +1999,7 @@ index 0000000..9682d01
 +#endif /* _SYS_SYSMACROS_H */
 diff --git mlibc-workdir/sysdeps/cynix/meson.build mlibc-workdir/sysdeps/cynix/meson.build
 new file mode 100644
-index 0000000..2350858
+index 0000000..d27e68a
 --- /dev/null
 +++ mlibc-workdir/sysdeps/cynix/meson.build
 @@ -0,0 +1,130 @@
@@ -2049,6 +2024,7 @@ index 0000000..2350858
 +
 +if not no_headers
 +	install_headers(
++		'include/abi-bits/access.h',
 +		'include/abi-bits/auxv.h',
 +		'include/abi-bits/seek-whence.h',
 +		'include/abi-bits/vm-flags.h',
@@ -2071,7 +2047,6 @@ index 0000000..2350858
 +		'include/abi-bits/nlink_t.h',
 +		'include/abi-bits/pid_t.h',
 +		'include/abi-bits/uid_t.h',
-+		'include/abi-bits/access.h',
 +		'include/abi-bits/wait.h',
 +		'include/abi-bits/limits.h',
 +		'include/abi-bits/utsname.h',
