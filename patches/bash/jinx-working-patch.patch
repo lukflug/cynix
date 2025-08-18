@@ -1,4 +1,5 @@
-diff -urN --no-dereference bash-clean/support/man2html.c bash-workdir/support/man2html.c
+diff --git bash-clean/support/man2html.c bash-workdir/support/man2html.c
+index 954b913..0963577 100644
 --- bash-clean/support/man2html.c
 +++ bash-workdir/support/man2html.c
 @@ -62,9 +62,6 @@
@@ -11,7 +12,7 @@ diff -urN --no-dereference bash-clean/support/man2html.c bash-workdir/support/ma
  
  #define NROFF 0
  
-@@ -123,27 +120,6 @@
+@@ -123,27 +120,6 @@ char *manpage;
  #define BD_LITERAL  1
  #define BD_INDENT   2
  
@@ -39,7 +40,8 @@ diff -urN --no-dereference bash-clean/support/man2html.c bash-workdir/support/ma
  static char *
  strgrow(char *old, int len)
  {
-diff -urN --no-dereference bash-clean/support/mksignames.c bash-workdir/support/mksignames.c
+diff --git bash-clean/support/mksignames.c bash-workdir/support/mksignames.c
+index 9d0a013..ef4422b 100644
 --- bash-clean/support/mksignames.c
 +++ bash-workdir/support/mksignames.c
 @@ -19,17 +19,11 @@
@@ -61,7 +63,8 @@ diff -urN --no-dereference bash-clean/support/mksignames.c bash-workdir/support/
  
  /* Duplicated from signames.c */
  #if !defined (NSIG)
-diff -urN --no-dereference bash-clean/support/signames.c bash-workdir/support/signames.c
+diff --git bash-clean/support/signames.c bash-workdir/support/signames.c
+index 9c22c9a..e94e9c4 100644
 --- bash-clean/support/signames.c
 +++ bash-workdir/support/signames.c
 @@ -18,18 +18,12 @@
