@@ -1,8 +1,8 @@
 #! /bin/sh
 
 name=kernel
-version=0.0
-revision=1
+version=0.0git
+revision=2
 source_dir="kernel"
 source_allow_network="yes"
 hostdeps="gcc"
@@ -18,8 +18,7 @@ build() {
 
     make -j${parallelism} \
         CFLAGS="$KERNEL_CFLAGS -O2 -pipe" \
-        CC=${OS_TRIPLET}-gcc \
-        AR=${OS_TRIPLET}-ar
+        TOOLCHAIN=${OS_TRIPLET}
 }
 
 package() {
