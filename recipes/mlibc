@@ -6,7 +6,6 @@ version=0.0git
 revision=21
 git_url="https://github.com/managarm/mlibc.git"
 commit=b24a5c00f5fa780a980c6fe4d83a8031a353c141
-source_allow_network=yes
 hostdeps="gcc pkg-config libgcc-binaries"
 deps="mlibc-headers"
 
