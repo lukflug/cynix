@@ -157,11 +157,27 @@ void uacpi_kernel_pci_device_close(uacpi_handle handle) {
     // ...
 }
 
-uacpi_status uacpi_kernel_pci_read(uacpi_handle device, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64 *value) {
+uacpi_status uacpi_kernel_pci_read8(uacpi_handle device, uacpi_size offset, uacpi_u8 *value) {
     return UACPI_STATUS_UNIMPLEMENTED;
 }
 
-uacpi_status uacpi_kernel_pci_write(uacpi_handle device, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64 value) {
+uacpi_status uacpi_kernel_pci_read16(uacpi_handle device, uacpi_size offset, uacpi_u16 *value) {
+    return UACPI_STATUS_UNIMPLEMENTED;
+}
+
+uacpi_status uacpi_kernel_pci_read32(uacpi_handle device, uacpi_size offset, uacpi_u32 *value) {
+    return UACPI_STATUS_UNIMPLEMENTED;
+}
+
+uacpi_status uacpi_kernel_pci_write8(uacpi_handle device, uacpi_size offset, uacpi_u8 value) {
+    return UACPI_STATUS_UNIMPLEMENTED;
+}
+
+uacpi_status uacpi_kernel_pci_write16(uacpi_handle device, uacpi_size offset, uacpi_u16 value) {
+    return UACPI_STATUS_UNIMPLEMENTED;
+}
+
+uacpi_status uacpi_kernel_pci_write32(uacpi_handle device, uacpi_size offset, uacpi_u32 value) {
     return UACPI_STATUS_UNIMPLEMENTED;
 }
 
@@ -191,29 +207,33 @@ void uacpi_kernel_io_unmap(uacpi_handle handle) {
     (void)handle;
 }
 
-uacpi_status uacpi_kernel_io_read(
-    uacpi_handle handle, uacpi_size offset,
-    uacpi_u8 byte_width, uacpi_u64 *value
-) {
-    switch (byte_width) {
-        case 1: *value = inb((uintptr_t)handle + offset); break;
-        case 2: *value = inw((uintptr_t)handle + offset); break;
-        case 4: *value = ind((uintptr_t)handle + offset); break;
-        default: panic(NULL, "uACPI I/O read of width %u\n", byte_width);
-    }
+uacpi_status uacpi_kernel_io_read8(uacpi_handle handle, uacpi_size offset, uacpi_u8 *value) {
+    *value = inb((uintptr_t)handle + offset);
     return UACPI_STATUS_OK;
 }
 
-uacpi_status uacpi_kernel_io_write(
-    uacpi_handle handle, uacpi_size offset,
-    uacpi_u8 byte_width, uacpi_u64 value
-) {
-    switch (byte_width) {
-        case 1: outb((uintptr_t)handle + offset, value); break;
-        case 2: outw((uintptr_t)handle + offset, value); break;
-        case 4: outd((uintptr_t)handle + offset, value); break;
-        default: panic(NULL, "uACPI I/O write of width %u\n", byte_width);
-    }
+uacpi_status uacpi_kernel_io_read16(uacpi_handle handle, uacpi_size offset, uacpi_u16 *value) {
+    *value = inw((uintptr_t)handle + offset);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status uacpi_kernel_io_read32(uacpi_handle handle, uacpi_size offset, uacpi_u32 *value) {
+    *value = ind((uintptr_t)handle + offset);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status uacpi_kernel_io_write8(uacpi_handle handle, uacpi_size offset, uacpi_u8 value) {
+    outb((uintptr_t)handle + offset, value);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status uacpi_kernel_io_write16(uacpi_handle handle, uacpi_size offset, uacpi_u16 value) {
+    outw((uintptr_t)handle + offset, value);
+    return UACPI_STATUS_OK;
+}
+
+uacpi_status uacpi_kernel_io_write32(uacpi_handle handle, uacpi_size offset, uacpi_u32 value) {
+    outd((uintptr_t)handle + offset, value);
     return UACPI_STATUS_OK;
 }
 

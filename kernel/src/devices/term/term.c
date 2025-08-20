@@ -1,6 +1,6 @@
 #include <stddef.h>
 #include <stdbool.h>
-#include <flanterm/backends/fb.h>
+#include <flanterm_backends/fb.h>
 #include <devices/term/term.k.h>
 #include <devices/fb/fb.k.h>
 #include <lib/spinlock.k.h>
@@ -37,7 +37,7 @@ void term_init(bool debug) {
 
     // Check if previous debug terminal started and deinit it.
     if (term_count != 0) {
-        terms[0].ft_ctx->deinit(terms[0].ft_ctx, NULL);
+        flanterm_deinit(terms[0].ft_ctx, NULL);
         term_count = 0;
     }
 
