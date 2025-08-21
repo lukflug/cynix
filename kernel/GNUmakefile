@@ -99,7 +99,6 @@ override CPPFLAGS := \
     -isystem mlibc-headers/include \
     -isystem freestnd-c-hdrs/include \
     $(CPPFLAGS) \
-    -DUACPI_OVERRIDE_LIBC \
     -DLIMINE_API_REVISION=2 \
     -D__MLIBC_ABI_ONLY \
     -D_GNU_SOURCE \
